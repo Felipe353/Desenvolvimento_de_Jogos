@@ -1,4 +1,5 @@
 #include "RigidBody2D.hpp"
+#include "Vector2D.hpp"
 #include <cassert>
 
 void RigidBody2D::integrate(float dt) noexcept{
