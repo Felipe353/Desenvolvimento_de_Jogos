@@ -31,7 +31,37 @@ Vector2D Vector2D::operator*(float scalar) const{
 }
 
 Vector2D Vector2D::operator/(float scalar) const{
-    if(scalar<EPSILON)
+    if(std::abs(scalar)<EPSILON)
         return;
     return Vector2D(x/scalar,y/scalar);
+}
+
+Vector2D& Vector2D::operator+=(const Vector2D& rhs) noexcept{
+    x += rhs.x;
+    y += rhs.y;
+    return *this;
+}
+
+Vector2D& Vector2D::operator-=(const Vector2D& rhs) noexcept{
+    x -= rhs.x;
+    y -= rhs.y;
+    return *this;
+}
+
+Vector2D& Vector2D::operator*=(float scalar) noexcept{
+    x *= scalar;
+    y *= scalar;
+    return *this;
+}
+
+Vector2D& Vector2D::operator/=(float scalar) noexcept{
+    if(std::abs(scalar)<EPSILON)
+        return;
+    x /= scalar;
+    y /= scalar;
+    return *this;
+}
+
+Vector2D operator*(float scalar, const Vector2D& vec) noexcept{
+    return vec * scalar;
 }
