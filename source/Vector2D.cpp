@@ -1,5 +1,6 @@
 #include "Vector2D.hpp"
 #include <cmath>
+#include <cassert>
 
 Vector2D Vector2D::normalized() const{
     float len = length();
@@ -12,27 +13,26 @@ void Vector2D::normalize(){
     y = y/len;
 }
 
-bool Vector2D::equals(const Vector2D& rhs, float tolerance = EPSILON) const noexcept{
+bool Vector2D::equals(const Vector2D& rhs, float tolerance) const noexcept{
     if(std::abs(rhs.x- x)<tolerance && std::abs(rhs.y-y)< tolerance)
         return true;
     return  false;
 }
 
-Vector2D Vector2D::operator+(const Vector2D& rhs) const{
+Vector2D Vector2D::operator+(const Vector2D& rhs) const noexcept{
     return Vector2D(x+rhs.x,y+rhs.y);
 }
 
-Vector2D Vector2D::operator-(const Vector2D& rhs) const{
+Vector2D Vector2D::operator-(const Vector2D& rhs) const noexcept{
     return Vector2D(x-rhs.x,y-rhs.y);
 }
 
-Vector2D Vector2D::operator*(float scalar) const{
+Vector2D Vector2D::operator*(float scalar) const noexcept{
     return Vector2D(x*scalar,y*scalar);
 }
 
 Vector2D Vector2D::operator/(float scalar) const{
-    if(std::abs(scalar)<EPSILON)
-        return;
+    assert(std::abs(scalar) > EPSILON && "Erro: Divisão por zero!");
     return Vector2D(x/scalar,y/scalar);
 }
 
@@ -54,9 +54,8 @@ Vector2D& Vector2D::operator*=(float scalar) noexcept{
     return *this;
 }
 
-Vector2D& Vector2D::operator/=(float scalar) noexcept{
-    if(std::abs(scalar)<EPSILON)
-        return;
+Vector2D& Vector2D::operator/=(float scalar) {
+    assert(std::abs(scalar) > EPSILON && "Erro: Divisão por zero!");
     x /= scalar;
     y /= scalar;
     return *this;
