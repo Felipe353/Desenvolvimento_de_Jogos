@@ -66,7 +66,7 @@ std::unique_ptr<BSPNode> splitSpace(Rect region, std::mt19937& rng, std::vector<
         if (n->left) return self(self, n->left.get());
         return self(self, n->right.get());
     };
-
+    
     Rect roomA = getAnyRoom(getAnyRoom, node->left.get());
     Rect roomB = getAnyRoom(getAnyRoom, node->right.get());
 
