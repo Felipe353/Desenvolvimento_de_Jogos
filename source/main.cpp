@@ -55,7 +55,7 @@ int main() {
     // --- 5. Testando Dungeon2D e TileMap ---
     std::cout << "[DEBUG] Iniciando Dungeon2D..." << std::endl;
     try {
-        Dungeon2D dungeon(80, 50);
+        Dungeon2D dungeon(80, 80);
         dungeon.generate(42); 
 
         std::cout << "[DEBUG] Dungeon2D gerado com sucesso. Checando root..." << std::endl;

@@ -15,31 +15,24 @@ std::unique_ptr<BSPNode> splitSpace(Rect region, std::mt19937& rng, std::vector<
     int w = region.right - region.left;
     int h = region.bottom - region.top;
 
-    // Tamanho mínimo para tentar uma divisão (precisa caber pelo menos duas salas de 5x5 + margens)
+    // Tamanho mínimo necessário para tentar uma divisão
     constexpr int minSizeForSplit = 20;
 
-    // Decide a direção da divisão com base nas proporções ou aleatoriamente se forem parecidas
-    bool splitH = (h > w); // se a altura for maior que a largura, prefere dividir horizontalmente
-    if (w == h) {
-        splitH = (rng() % 2 == 0);
+    // CORREÇÃO: Se qualquer uma das dimensões for menor que o dobro do tamanho mínimo,
+    // para a recursão imediatamente e cria um nó folha (sala).
+    if (w < minSizeForSplit * 2 || h < minSizeForSplit * 2) {
+        int roomW = std::max(5, w - 4);
+        int roomH = std::max(5, h - 4);
+        int roomL = region.left + 1 + (w - roomW > 2 ? (rng() % (w - roomW - 1)) : 0);
+        int roomT = region.top + 1 + (h - roomH > 2 ? (rng() % (h - roomH - 1)) : 0);
+        node->room = Rect{roomL, roomT, roomL + roomW, roomT + roomH};
+        return node;
     }
 
-    // Verifica se a região é muito pequena para continuar dividindo
-    if (splitH && h < minSizeForSplit * 2) {
-        splitH = false;
-    }
-    if (!splitH && w < minSizeForSplit * 2) {
-        // Se ambos forem pequenos demais para dividir, vira nó folha
-        if (h < minSizeForSplit * 2) {
-            // Para a recursão aqui
-            // Cria a sala dentro da região folha
-            int roomW = std::max(5, w - 4);
-            int roomH = std::max(5, h - 4);
-            int roomL = region.left + 1 + (w - roomW > 2 ? (rng() % (w - roomW - 1)) : 0);
-            int roomT = region.top + 1 + (h - roomH > 2 ? (rng() % (h - roomH - 1)) : 0);
-            node->room = Rect{roomL, roomT, roomL + roomW, roomT + roomH};
-            return node;
-        }
+    // Decide a direção da divisão com base nas proporções
+    bool splitH = (h > w); 
+    if (w == h) {
+        splitH = (rng() % 2 == 0);
     }
 
     if (splitH) {
