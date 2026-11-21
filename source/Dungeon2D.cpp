@@ -15,37 +15,53 @@ std::unique_ptr<BSPNode> splitSpace(Rect region, std::mt19937& rng, std::vector<
     int w = region.right - region.left;
     int h = region.bottom - region.top;
 
-    // Tamanho mínimo necessário para tentar uma divisão
-    constexpr int minSizeForSplit = 20;
+    // Configuração dos tamanhos de partição
+    constexpr int minSizeForSplit = 20; // Permite partições menores
+    constexpr int maxLeafSize = 24;     // Impede que partições gigantes fiquem sem divisão
 
-    // CORREÇÃO: Se qualquer uma das dimensões for menor que o dobro do tamanho mínimo,
-    // para a recursão imediatamente e cria um nó folha (sala).
-    if (w < minSizeForSplit * 2 || h < minSizeForSplit * 2) {
-        int roomW = std::max(5, w - 4);
-        int roomH = std::max(5, h - 4);
-        int roomL = region.left + 1 + (w - roomW > 2 ? (rng() % (w - roomW - 1)) : 0);
-        int roomT = region.top + 1 + (h - roomH > 2 ? (rng() % (h - roomH - 1)) : 0);
+    // Se qualquer dimensão for maior que o máximo permitido, obriga o BSP a dividir
+    bool forceSplit = (w > maxLeafSize || h > maxLeafSize);
+
+    // OBRIGA A VIRAR SALA (FOLHA): Apenas se a área for pequena E não houver obrigação de divisão
+    if (!forceSplit && (w < minSizeForSplit * 2 || h < minSizeForSplit * 2)) {
+        int minPadding = 2; // Margem para paredes finas
+        
+        // Força o tamanho interno mínimo da sala para 10 tiles de altura e largura
+        int roomW = std::max(20, w - (minPadding * 2));
+        int roomH = std::max(20, h - (minPadding * 2));
+        int roomL = region.left + minPadding;
+        int roomT = region.top + minPadding;
+        
         node->room = Rect{roomL, roomT, roomL + roomW, roomT + roomH};
         return node;
     }
 
-    // Decide a direção da divisão com base nas proporções
+    // Decide a direção da divisão priorizando o eixo mais longo
     bool splitH = (h > w); 
     if (w == h) {
         splitH = (rng() % 2 == 0);
     }
 
+    // Garante limites seguros para o corte sem estourar o minSizeForSplit
     if (splitH) {
-        // Divisão horizontal (corte na altura)
-        int splitCoord = region.top + minSizeForSplit + (rng() % (h - minSizeForSplit * 2));
+        int minBound = region.top + minSizeForSplit;
+        int maxBound = region.bottom - minSizeForSplit;
+        if (minBound > maxBound) minBound = maxBound;
+
+        int splitCoord = minBound + (rng() % (maxBound - minBound + 1));
+
         Rect leftRegion{region.left, region.top, region.right, splitCoord};
         Rect rightRegion{region.left, splitCoord, region.right, region.bottom};
 
         node->left = splitSpace(leftRegion, rng, corridors);
         node->right = splitSpace(rightRegion, rng, corridors);
     } else {
-        // Divisão vertical (corte na largura)
-        int splitCoord = region.left + minSizeForSplit + (rng() % (w - minSizeForSplit * 2));
+        int minBound = region.left + minSizeForSplit;
+        int maxBound = region.right - minSizeForSplit;
+        if (minBound > maxBound) minBound = maxBound;
+
+        int splitCoord = minBound + (rng() % (maxBound - minBound + 1));
+
         Rect leftRegion{region.left, region.top, splitCoord, region.bottom};
         Rect rightRegion{splitCoord, region.top, region.right, region.bottom};
 
@@ -53,7 +69,7 @@ std::unique_ptr<BSPNode> splitSpace(Rect region, std::mt19937& rng, std::vector<
         node->right = splitSpace(rightRegion, rng, corridors);
     }
 
-    // Nó interno: conecta os filhos com um corredor de 3 tiles de largura
+    // Nó interno: Conecta os filhos com um corredor
     auto getAnyRoom = [](const auto& self, const BSPNode* n) -> Rect {
         if (n->isLeaf()) return n->room;
         if (n->left) return self(self, n->left.get());
